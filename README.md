@@ -5,6 +5,13 @@
 <h4 align="center">A platform-agnostic camera and sensor capture API for the <a href="https://www.stereolabs.com/products/zed-2">ZED 2, ZED 2i, and ZED Mini</a> stereo cameras</h4>
 <h5 align="center">*** not compatible with GMSL2 devices: <a href="https://www.stereolabs.com/products/zed-x">ZED X, ZED X Mini, and ZED X One</a> ***</h5>
 
+> **Fork notice:** This ivaROS repository is derived from the original
+> [Stereolabs ZED Open Capture](https://github.com/stereolabs/zed-open-capture)
+> project, authored by Stereolabs and distributed under the MIT License.
+> Copyright (c) 2021 Stereolabs. The ivaROS fork carries a calibration-parser
+> update for current factory files while preserving the original license and
+> attribution.
+
 <p align="center">
   <a href="#key-features">Key Features</a> •
   <a href="#build-and-install">Build and install</a> •
