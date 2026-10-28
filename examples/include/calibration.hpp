@@ -4255,13 +4255,53 @@ bool initCalibration(std::string calibration_file, cv::Size2i image_size, cv::Ma
 
     cv::Mat distCoeffs_left, distCoeffs_right;
 
+    // Current ZED factory files provide the full OpenCV rational model in
+    // LEFT_DISTO/RIGHT_DISTO. Older files only have the per-resolution
+    // five-coefficient model above. Prefer the rational model when its
+    // denominator coefficients are present; ignoring them can make
+    // stereoRectify produce a projection whose principal point is outside
+    // the image, especially at VGA resolution.
+    const float left_rat_k1 = camerareader.getValue("left_disto:k1", 0.0f);
+    const float left_rat_k2 = camerareader.getValue("left_disto:k2", 0.0f);
+    const float left_rat_k3 = camerareader.getValue("left_disto:k3", 0.0f);
+    const float left_rat_k4 = camerareader.getValue("left_disto:k4", 0.0f);
+    const float left_rat_k5 = camerareader.getValue("left_disto:k5", 0.0f);
+    const float left_rat_k6 = camerareader.getValue("left_disto:k6", 0.0f);
+    const float left_rat_p1 = camerareader.getValue("left_disto:p1", 0.0f);
+    const float left_rat_p2 = camerareader.getValue("left_disto:p2", 0.0f);
+    const float right_rat_k1 = camerareader.getValue("right_disto:k1", 0.0f);
+    const float right_rat_k2 = camerareader.getValue("right_disto:k2", 0.0f);
+    const float right_rat_k3 = camerareader.getValue("right_disto:k3", 0.0f);
+    const float right_rat_k4 = camerareader.getValue("right_disto:k4", 0.0f);
+    const float right_rat_k5 = camerareader.getValue("right_disto:k5", 0.0f);
+    const float right_rat_k6 = camerareader.getValue("right_disto:k6", 0.0f);
+    const float right_rat_p1 = camerareader.getValue("right_disto:p1", 0.0f);
+    const float right_rat_p2 = camerareader.getValue("right_disto:p2", 0.0f);
+    const bool has_rational_model =
+        left_rat_k4 != 0.0f || left_rat_k5 != 0.0f || left_rat_k6 != 0.0f ||
+        right_rat_k4 != 0.0f || right_rat_k5 != 0.0f || right_rat_k6 != 0.0f;
+
     // Left
     cameraMatrix_left = (cv::Mat_<double>(3, 3) << left_cam_fx, 0, left_cam_cx, 0, left_cam_fy, left_cam_cy, 0, 0, 1);
-    distCoeffs_left = (cv::Mat_<double>(5, 1) << left_cam_k1, left_cam_k2, left_cam_p1, left_cam_p2, left_cam_k3);
+    if (has_rational_model) {
+        distCoeffs_left = (cv::Mat_<double>(8, 1) <<
+            left_rat_k1, left_rat_k2, left_rat_p1, left_rat_p2,
+            left_rat_k3, left_rat_k4, left_rat_k5, left_rat_k6);
+    } else {
+        distCoeffs_left = (cv::Mat_<double>(5, 1) <<
+            left_cam_k1, left_cam_k2, left_cam_p1, left_cam_p2, left_cam_k3);
+    }
 
     // Right
     cameraMatrix_right = (cv::Mat_<double>(3, 3) << right_cam_fx, 0, right_cam_cx, 0, right_cam_fy, right_cam_cy, 0, 0, 1);
-    distCoeffs_right = (cv::Mat_<double>(5, 1) << right_cam_k1, right_cam_k2, right_cam_p1, right_cam_p2, right_cam_k3);
+    if (has_rational_model) {
+        distCoeffs_right = (cv::Mat_<double>(8, 1) <<
+            right_rat_k1, right_rat_k2, right_rat_p1, right_rat_p2,
+            right_rat_k3, right_rat_k4, right_rat_k5, right_rat_k6);
+    } else {
+        distCoeffs_right = (cv::Mat_<double>(5, 1) <<
+            right_cam_k1, right_cam_k2, right_cam_p1, right_cam_p2, right_cam_k3);
+    }
 
     // Stereo
     cv::Mat T = (cv::Mat_<double>(3, 1) << T_[0], T_[1], T_[2]);
